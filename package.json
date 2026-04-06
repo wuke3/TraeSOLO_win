@@ -1,7 +1,7 @@
 {
-  "name": "trae-solo-wrapper",
+  "name": "trae-solo-win",
   "version": "1.0.0",
-  "description": "TRAE SOLO 桌面包装器",
+  "description": "TRAE SOLO Win",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -19,18 +19,15 @@
     "electron-builder": "^24.0.0"
   },
   "build": {
-    "appId": "com.trae.solo-wrapper",
-    "productName": "TRAE SOLO Wrapper",
+    "appId": "com.trae.solo-win",
+    "productName": "TRAE SOLO Win",
     "icon": "src/favicon.png",
     "target": [
-      {
-        "target": "nsis",
-        "arch": ["x64"]
-      },
-      {
-        "target": "deb",
-        "arch": ["x64"]
-      }
+      "exe",
+      "nsis",
+      "deb",
+      "appimage",
+      "snap"
     ],
     "win": {
       "console": false,
