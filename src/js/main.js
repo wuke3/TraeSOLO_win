@@ -273,3 +273,51 @@ reserveWebview.addEventListener('will-download', (e) => {
     }
   });
 });
+
+// 音频播放函数
+function playAudio(audioType) {
+  try {
+    const audio = new Audio(`src/${audioType}.mp3`);
+    audio.play().catch(error => {
+      console.error(`播放${audioType}.mp3失败:`, error);
+    });
+  } catch (error) {
+    console.error('音频播放错误:', error);
+  }
+}
+
+// 监控内嵌页面的控制台输出
+mainWebview.addEventListener('console-message', (e) => {
+  const message = e.message;
+  console.log('内嵌页面控制台输出:', message);
+  
+  // 检查成功消息模式
+  if (message.includes('terminal event detected: done')) {
+    console.log('检测到成功输出，播放success.mp3');
+    playAudio('success');
+  }
+  
+  // 检查错误消息模式
+  if (message.includes('net::ERR_') || message.includes('error') || message.includes('Failed')) {
+    console.log('检测到错误输出，播放error.mp3');
+    playAudio('error');
+  }
+});
+
+// 同样为预约窗口添加控制台监控
+reserveWebview.addEventListener('console-message', (e) => {
+  const message = e.message;
+  console.log('预约窗口控制台输出:', message);
+  
+  // 检查成功消息模式
+  if (message.includes('terminal event detected: done')) {
+    console.log('检测到成功输出，播放success.mp3');
+    playAudio('success');
+  }
+  
+  // 检查错误消息模式
+  if (message.includes('net::ERR_') || message.includes('error') || message.includes('Failed')) {
+    console.log('检测到错误输出，播放error.mp3');
+    playAudio('error');
+  }
+});
