@@ -37,6 +37,8 @@ body.dark {
   padding: 0 20px;
   user-select: none;
   transition: background-color 0.3s ease;
+  position: relative;
+  z-index: 10;
 }
 
 body.light #title-bar {
@@ -66,6 +68,8 @@ body.dark #title-bar {
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  z-index: 20;
 }
 
 
@@ -129,6 +133,7 @@ body.dark .title-bar-button:hover {
   flex: 1;
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 /* WebView */
