@@ -68,12 +68,7 @@ body.dark #title-bar {
   gap: 10px;
 }
 
-/* 禁用顶部标题栏右侧的所有按钮 */
-#title-bar-right .title-bar-button {
-  pointer-events: none;
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+
 
 /* 按钮样式 */
 .title-bar-button {

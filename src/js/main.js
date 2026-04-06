@@ -221,7 +221,7 @@ function createExternalWindow(url) {
   });
 
   win.loadFile('external-window.html', {
-    query: { url }
+    query: { url: encodeURIComponent(url) }
   });
 }
 

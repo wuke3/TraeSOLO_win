@@ -1,7 +1,7 @@
 const { remote, ipcRenderer } = require('electron');
 const { BrowserWindow } = remote;
 const urlParams = new URLSearchParams(window.location.search);
-const targetUrl = urlParams.get('url');
+const targetUrl = decodeURIComponent(urlParams.get('url'));
 
 console.log('外部链接窗口URL:', targetUrl);
 
@@ -111,6 +111,6 @@ function createExternalWindow(url) {
   });
 
   win.loadFile('external-window.html', {
-    query: { url }
+    query: { url: encodeURIComponent(url) }
   });
 }
