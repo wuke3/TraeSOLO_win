@@ -30,6 +30,12 @@
         "target": "deb",
         "arch": ["x64"]
       }
-    ]
+    ],
+    "win": {
+      "console": false
+    },
+    "linux": {
+      "console": false
+    }
   }
 }

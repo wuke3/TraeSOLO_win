@@ -1,5 +1,7 @@
 const { ipcRenderer, remote } = require('electron');
 const { BrowserWindow } = remote;
+const path = require('path');
+const { app } = require('electron').remote;
 
 // 获取DOM元素
 const mainWebview = document.getElementById('main-webview');
@@ -277,7 +279,10 @@ reserveWebview.addEventListener('will-download', (e) => {
 // 音频播放函数
 function playAudio(audioType) {
   try {
-    const audio = new Audio(`src/${audioType}.mp3`);
+    // 构建音频文件的绝对路径
+    const audioPath = path.join(app.getAppPath(), 'src', `${audioType}.mp3`);
+    console.log(`播放音频文件: ${audioPath}`);
+    const audio = new Audio(`file://${audioPath}`);
     audio.play().catch(error => {
       console.error(`播放${audioType}.mp3失败:`, error);
     });
