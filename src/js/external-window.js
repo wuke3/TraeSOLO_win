@@ -3,6 +3,8 @@ const { BrowserWindow } = remote;
 const urlParams = new URLSearchParams(window.location.search);
 const targetUrl = urlParams.get('url');
 
+console.log('外部链接窗口URL:', targetUrl);
+
 // 获取DOM元素
 const externalWebview = document.getElementById('external-webview');
 const minimizeButton = document.getElementById('minimize-button');
@@ -16,22 +18,33 @@ externalWebview.src = targetUrl;
 // 更新标题
 externalWebview.addEventListener('did-start-loading', () => {
   appTitle.textContent = '加载中...';
+  console.log('开始加载:', targetUrl);
 });
 
 externalWebview.addEventListener('did-finish-load', () => {
+  console.log('加载完成');
   externalWebview.executeJavaScript(`
     document.title
   `).then(title => {
     appTitle.textContent = title || '外部链接';
+  }).catch(err => {
+    console.error('获取标题失败:', err);
+    appTitle.textContent = '外部链接';
   });
 });
 
-// 窗口控制
-minimizeButton.addEventListener('click', () => {
+externalWebview.addEventListener('dom-ready', () => {
+  console.log('DOM ready');
+});
+
+// 窗口控制 - 添加 stopPropagation
+minimizeButton.addEventListener('click', (e) => {
+  e.stopPropagation();
   remote.getCurrentWindow().minimize();
 });
 
-maximizeButton.addEventListener('click', () => {
+maximizeButton.addEventListener('click', (e) => {
+  e.stopPropagation();
   const win = remote.getCurrentWindow();
   if (win.isMaximized()) {
     win.unmaximize();
@@ -40,13 +53,19 @@ maximizeButton.addEventListener('click', () => {
   }
 });
 
-closeButton.addEventListener('click', () => {
+closeButton.addEventListener('click', (e) => {
+  e.stopPropagation();
   remote.getCurrentWindow().close();
 });
 
-// 标题栏拖拽
+// 标题栏拖拽 - 改进逻辑，排除按钮区域
 const titleBar = document.getElementById('title-bar');
 titleBar.addEventListener('mousedown', (e) => {
+  const targetElement = e.target;
+  if (targetElement.closest('.title-bar-button')) {
+    return;
+  }
+  
   if (e.target === titleBar || e.target === appTitle) {
     remote.getCurrentWindow().startDrag();
   }

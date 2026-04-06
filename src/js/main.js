@@ -36,28 +36,44 @@ closeButton.addEventListener('click', () => {
 // 标题栏拖拽
 const titleBar = document.getElementById('title-bar');
 titleBar.addEventListener('mousedown', (e) => {
+  // 排除按钮区域，防止点击按钮时触发拖拽
+  const targetElement = e.target;
+  if (targetElement.closest('.title-bar-button') || 
+      targetElement.closest('#settings-panel') || 
+      targetElement.closest('#reserve-modal')) {
+    return;
+  }
+  
   if (e.target === titleBar || e.target === document.getElementById('app-title')) {
     remote.getCurrentWindow().startDrag();
   }
 });
 
-// 设置面板
-settingsButton.addEventListener('click', () => {
+// 设置面板 - 使用 closest 确保点击 SVG 图标也能触发
+settingsButton.addEventListener('click', (e) => {
+  e.stopPropagation();
+  console.log('设置按钮被点击');
   settingsPanel.classList.toggle('open');
+  console.log('设置面板状态:', settingsPanel.classList.contains('open'));
 });
 
 // 预约弹窗
-reserveButton.addEventListener('click', () => {
+reserveButton.addEventListener('click', (e) => {
+  e.stopPropagation();
+  console.log('预约按钮被点击');
   reserveModal.classList.add('open');
 });
 
-reserveModalClose.addEventListener('click', () => {
+reserveModalClose.addEventListener('click', (e) => {
+  e.stopPropagation();
+  console.log('关闭预约弹窗按钮被点击');
   reserveModal.classList.remove('open');
 });
 
 // 点击弹窗外部关闭
 reserveModal.addEventListener('click', (e) => {
   if (e.target === reserveModal) {
+    console.log('点击弹窗外部关闭');
     reserveModal.classList.remove('open');
   }
 });
