@@ -106,7 +106,8 @@ function createExternalWindow(url) {
     frame: false,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false,
+      enableRemoteModule: true
     }
   });
 
