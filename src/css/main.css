@@ -30,11 +30,11 @@ body.dark {
 
 /* 标题栏 */
 #title-bar {
-  height: 60px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 16px;
   user-select: none;
   transition: background-color 0.3s ease;
   position: relative;
@@ -55,11 +55,17 @@ body.dark #title-bar {
 #title-bar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+
+#app-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 #app-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -141,19 +147,26 @@ webview {
   width: 100%;
   height: 100%;
   border: none;
+  overflow: hidden;
+}
+
+/* 隐藏 webview 的滚动条 */
+webview::-webkit-scrollbar {
+  display: none;
 }
 
 /* 设置面板 */
 #settings-panel {
   position: absolute;
-  top: 60px;
+  top: 48px;
   right: 0;
   width: 300px;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 48px);
   transition: transform 0.3s ease;
   transform: translateX(100%);
   z-index: 100;
   overflow-y: auto;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
 }
 
 #settings-panel.open {
@@ -172,17 +185,34 @@ body.dark #settings-panel {
 
 /* 设置面板内容 */
 #settings-content {
-  padding: 20px;
+  padding: 24px;
+}
+
+#settings-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
 }
 
 .setting-item {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+body.light .setting-item:hover {
+  background-color: #f8f9fa;
+}
+
+body.dark .setting-item:hover {
+  background-color: #3d3d3d;
 }
 
 .setting-label {
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .setting-control {
@@ -251,94 +281,4 @@ input:checked + .toggle-slider {
 
 input:checked + .toggle-slider:before {
   transform: translateX(26px);
-}
-
-/* 预约弹窗 */
-#reserve-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-
-#reserve-modal.open {
-  opacity: 1;
-  visibility: visible;
-}
-
-#reserve-modal-content {
-  width: 500px;
-  height: 400px;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
-
-body.light #reserve-modal-content {
-  background-color: #ffffff;
-}
-
-body.dark #reserve-modal-content {
-  background-color: #2d2d2d;
-}
-
-#reserve-modal-header {
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-body.dark #reserve-modal-header {
-  border-bottom: 1px solid #3d3d3d;
-}
-
-#reserve-modal-title {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-#reserve-modal-close {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 4px;
-}
-
-body.light #reserve-modal-close {
-  color: #333333;
-}
-
-body.dark #reserve-modal-close {
-  color: #e0e0e0;
-}
-
-body.light #reserve-modal-close:hover {
-  background-color: #e9ecef;
-}
-
-body.dark #reserve-modal-close:hover {
-  background-color: #3d3d3d;
-}
-
-#reserve-modal-body {
-  height: calc(100% - 50px);
-}
-
-#reserve-modal-body webview {
-  width: 100%;
-  height: 100%;
 }

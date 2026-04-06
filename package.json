@@ -21,6 +21,7 @@
   "build": {
     "appId": "com.trae.solo-wrapper",
     "productName": "TRAE SOLO Wrapper",
+    "icon": "src/favicon.png",
     "target": [
       {
         "target": "nsis",
@@ -32,10 +33,12 @@
       }
     ],
     "win": {
-      "console": false
+      "console": false,
+      "icon": "src/favicon.png"
     },
     "linux": {
-      "console": false
+      "console": false,
+      "icon": "src/favicon.png"
     }
   }
 }
