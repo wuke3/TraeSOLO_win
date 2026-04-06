@@ -68,6 +68,13 @@ body.dark #title-bar {
   gap: 10px;
 }
 
+/* 禁用顶部标题栏右侧的所有按钮 */
+#title-bar-right .title-bar-button {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* 按钮样式 */
 .title-bar-button {
   width: 36px;
@@ -116,16 +123,9 @@ body.dark .title-bar-button:hover {
 
 /* 预约按钮 */
 #reserve-button {
-  background-color: #0070f3;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 0 12px;
   font-size: 14px;
   font-weight: 500;
-}
-
-#reserve-button:hover {
-  background-color: #0056b3;
 }
 
 /* 内容区域 */

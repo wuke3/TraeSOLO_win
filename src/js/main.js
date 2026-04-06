@@ -135,14 +135,77 @@ mainWebview.addEventListener('will-download', (e) => {
 // 处理外部链接
 mainWebview.addEventListener('new-window', (e) => {
   const url = e.url;
-  const currentUrl = mainWebview.src;
-  const currentDomain = new URL(currentUrl).hostname;
-  const targetDomain = new URL(url).hostname;
+  console.log('外部链接请求:', url);
+  
+  // 阻止默认行为并创建新窗口
+  e.preventDefault();
+  createExternalWindow(url);
+});
 
-  if (targetDomain !== currentDomain) {
-    e.preventDefault();
-    createExternalWindow(url);
+// 处理导航事件，确保外部链接也能被捕获
+mainWebview.addEventListener('will-navigate', (e) => {
+  const url = e.url;
+  const currentUrl = mainWebview.src;
+  
+  // 避免循环导航
+  if (url === currentUrl) return;
+  
+  console.log('导航请求:', url);
+  
+  // 检查是否为外部链接
+  try {
+    const currentDomain = new URL(currentUrl).hostname;
+    const targetDomain = new URL(url).hostname;
+    
+    if (targetDomain !== currentDomain) {
+      e.preventDefault();
+      createExternalWindow(url);
+    }
+  } catch (error) {
+    console.error('URL解析错误:', error);
   }
+});
+
+// 自动检测网页模式并调整应用程序主题
+mainWebview.addEventListener('dom-ready', () => {
+  mainWebview.executeJavaScript(`
+    // 检测网页是否为深色模式
+    function detectDarkMode() {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ||
+             document.documentElement.classList.contains('dark') ||
+             document.body.classList.contains('dark') ||
+             getComputedStyle(document.body).backgroundColor === 'rgb(26, 26, 26)';
+    }
+    detectDarkMode();
+  `, (result) => {
+    console.log('网页深色模式检测结果:', result);
+    updateTheme(result);
+    darkModeToggle.checked = result;
+    ipcRenderer.send('update-settings', { darkMode: result });
+  });
+});
+
+// 监听网页主题变化
+mainWebview.addEventListener('did-start-loading', () => {
+  console.log('网页开始加载，准备检测主题');
+});
+
+mainWebview.addEventListener('did-stop-loading', () => {
+  console.log('网页加载完成，检测主题');
+  mainWebview.executeJavaScript(`
+    function detectDarkMode() {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ||
+             document.documentElement.classList.contains('dark') ||
+             document.body.classList.contains('dark') ||
+             getComputedStyle(document.body).backgroundColor === 'rgb(26, 26, 26)';
+    }
+    detectDarkMode();
+  `, (result) => {
+    console.log('网页深色模式检测结果:', result);
+    updateTheme(result);
+    darkModeToggle.checked = result;
+    ipcRenderer.send('update-settings', { darkMode: result });
+  });
 });
 
 // 创建外部链接窗口
