@@ -1,6 +1,6 @@
-# TRAE SOLO 桌面包装器
+# TRAE SOLO Win
 
-TRAE SOLO 桌面包装器是一个基于 Electron 开发的跨平台桌面应用程序，用于包装 TRAE SOLO 的网页版，提供更原生的桌面使用体验。
+TRAE SOLO Win 是一个基于 Electron 开发的跨平台桌面应用程序，用于包装 TRAE SOLO 的网页版，提供更原生的桌面使用体验。
 
 ## 功能特性
 
@@ -131,5 +131,5 @@ npm run build
 ## 联系方式
 
 如有任何问题或建议，请通过以下方式联系：
-- 项目地址：[TRAE SOLO 桌面包装器](https://github.com/yourusername/trae-solo-wrapper)
+- 项目地址：[TRAE SOLO Win](https://github.com/wuke3/TraeSOLO_win)
 - 官方网站：[TRAE SOLO](https://solo.trae.cn/)
