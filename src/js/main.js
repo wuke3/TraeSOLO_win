@@ -37,7 +37,7 @@ addButtonClickListener(minimizeButton, function(e) {
   e.stopPropagation();
   console.log('最小化按钮被点击');
   try {
-    remote.getCurrentWindow().minimize();
+    ipcRenderer.send('minimize-window');
   } catch (error) {
     console.error('最小化按钮错误:', error);
   }
@@ -47,12 +47,7 @@ addButtonClickListener(maximizeButton, function(e) {
   e.stopPropagation();
   console.log('最大化按钮被点击');
   try {
-    const win = remote.getCurrentWindow();
-    if (win.isMaximized()) {
-      win.unmaximize();
-    } else {
-      win.maximize();
-    }
+    ipcRenderer.send('maximize-window');
   } catch (error) {
     console.error('最大化按钮错误:', error);
   }
@@ -62,7 +57,7 @@ addButtonClickListener(closeButton, function(e) {
   e.stopPropagation();
   console.log('关闭按钮被点击');
   try {
-    remote.getCurrentWindow().close();
+    ipcRenderer.send('close-window');
   } catch (error) {
     console.error('关闭按钮错误:', error);
   }

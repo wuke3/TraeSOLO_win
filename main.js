@@ -80,6 +80,29 @@ ipcMain.on('update-settings', (event, newSettings) => {
   event.reply('settings-updated', settings);
 });
 
+// 处理窗口控制IPC通信
+ipcMain.on('minimize-window', (event) => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.on('maximize-window', (event) => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.on('close-window', (event) => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
 // 处理下载请求
 ipcMain.on('download-request', async (event, url) => {
   try {
