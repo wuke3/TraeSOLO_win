@@ -37,13 +37,27 @@ externalWebview.addEventListener('dom-ready', () => {
   console.log('DOM ready');
 });
 
+// 辅助函数：为按钮添加点击事件监听器
+function addButtonClickListener(button, callback) {
+  if (button) {
+    // 为按钮本身添加点击事件
+    button.addEventListener('click', callback);
+    
+    // 为按钮内的SVG添加点击事件
+    const svg = button.querySelector('svg');
+    if (svg) {
+      svg.addEventListener('click', callback);
+    }
+  }
+}
+
 // 窗口控制 - 添加 stopPropagation
-minimizeButton.addEventListener('click', (e) => {
+addButtonClickListener(minimizeButton, (e) => {
   e.stopPropagation();
   remote.getCurrentWindow().minimize();
 });
 
-maximizeButton.addEventListener('click', (e) => {
+addButtonClickListener(maximizeButton, (e) => {
   e.stopPropagation();
   const win = remote.getCurrentWindow();
   if (win.isMaximized()) {
@@ -53,7 +67,7 @@ maximizeButton.addEventListener('click', (e) => {
   }
 });
 
-closeButton.addEventListener('click', (e) => {
+addButtonClickListener(closeButton, (e) => {
   e.stopPropagation();
   remote.getCurrentWindow().close();
 });

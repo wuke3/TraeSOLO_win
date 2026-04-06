@@ -16,37 +16,88 @@ const maximizeButton = document.getElementById('maximize-button');
 const closeButton = document.getElementById('close-button');
 
 // 窗口控制
-// 为按钮和其中的SVG图标添加点击事件监听器
-function addButtonClickListener(button, callback) {
-  button.addEventListener('click', (e) => {
-    callback(e);
-  });
-  // 为按钮内的所有SVG图标添加点击事件监听器
-  const svgs = button.querySelectorAll('svg');
-  svgs.forEach(svg => {
-    svg.addEventListener('click', (e) => {
-      e.stopPropagation();
-      callback(e);
-    });
-  });
-}
-
-addButtonClickListener(minimizeButton, () => {
-  remote.getCurrentWindow().minimize();
-});
-
-addButtonClickListener(maximizeButton, () => {
-  const win = remote.getCurrentWindow();
-  if (win.isMaximized()) {
-    win.unmaximize();
-  } else {
-    win.maximize();
+// 直接为按钮添加点击事件监听器，确保事件能够正确触发
+minimizeButton.addEventListener('click', function(e) {
+  e.stopPropagation();
+  console.log('最小化按钮被点击');
+  try {
+    remote.getCurrentWindow().minimize();
+  } catch (error) {
+    console.error('最小化按钮错误:', error);
   }
 });
 
-addButtonClickListener(closeButton, () => {
-  remote.getCurrentWindow().close();
+// 为最小化按钮内的SVG添加点击事件
+const minimizeSvg = minimizeButton.querySelector('svg');
+if (minimizeSvg) {
+  minimizeSvg.addEventListener('click', function(e) {
+    e.stopPropagation();
+    console.log('最小化SVG被点击');
+    try {
+      remote.getCurrentWindow().minimize();
+    } catch (error) {
+      console.error('最小化SVG错误:', error);
+    }
+  });
+}
+
+maximizeButton.addEventListener('click', function(e) {
+  e.stopPropagation();
+  console.log('最大化按钮被点击');
+  try {
+    const win = remote.getCurrentWindow();
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+  } catch (error) {
+    console.error('最大化按钮错误:', error);
+  }
 });
+
+// 为最大化按钮内的SVG添加点击事件
+const maximizeSvg = maximizeButton.querySelector('svg');
+if (maximizeSvg) {
+  maximizeSvg.addEventListener('click', function(e) {
+    e.stopPropagation();
+    console.log('最大化SVG被点击');
+    try {
+      const win = remote.getCurrentWindow();
+      if (win.isMaximized()) {
+        win.unmaximize();
+      } else {
+        win.maximize();
+      }
+    } catch (error) {
+      console.error('最大化SVG错误:', error);
+    }
+  });
+}
+
+closeButton.addEventListener('click', function(e) {
+  e.stopPropagation();
+  console.log('关闭按钮被点击');
+  try {
+    remote.getCurrentWindow().close();
+  } catch (error) {
+    console.error('关闭按钮错误:', error);
+  }
+});
+
+// 为关闭按钮内的SVG添加点击事件
+const closeSvg = closeButton.querySelector('svg');
+if (closeSvg) {
+  closeSvg.addEventListener('click', function(e) {
+    e.stopPropagation();
+    console.log('关闭SVG被点击');
+    try {
+      remote.getCurrentWindow().close();
+    } catch (error) {
+      console.error('关闭SVG错误:', error);
+    }
+  });
+}
 
 // 标题栏拖拽
 const titleBar = document.getElementById('title-bar');
@@ -63,6 +114,20 @@ titleBar.addEventListener('mousedown', (e) => {
     remote.getCurrentWindow().startDrag();
   }
 });
+
+// 辅助函数：为按钮添加点击事件监听器
+function addButtonClickListener(button, callback) {
+  if (button) {
+    // 为按钮本身添加点击事件
+    button.addEventListener('click', callback);
+    
+    // 为按钮内的SVG添加点击事件
+    const svg = button.querySelector('svg');
+    if (svg) {
+      svg.addEventListener('click', callback);
+    }
+  }
+}
 
 // 设置面板
 addButtonClickListener(settingsButton, (e) => {
