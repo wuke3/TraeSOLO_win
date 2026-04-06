@@ -1,7 +1,5 @@
-const { ipcRenderer, remote } = require('electron');
-const { BrowserWindow } = remote;
+const { ipcRenderer } = require('electron');
 const path = require('path');
-const { app } = require('electron').remote;
 
 // 获取DOM元素
 const mainWebview = document.getElementById('main-webview');
@@ -17,70 +15,53 @@ const minimizeButton = document.getElementById('minimize-button');
 const maximizeButton = document.getElementById('maximize-button');
 const closeButton = document.getElementById('close-button');
 
-// 辅助函数：为按钮添加点击事件监听器
-function addButtonClickListener(button, callback) {
-  if (button) {
-    // 为按钮本身添加点击事件
-    button.addEventListener('click', callback);
-    
-    // 为按钮内的SVG添加点击事件
-    const svg = button.querySelector('svg');
-    if (svg) {
-      svg.addEventListener('click', callback);
-    }
-  }
-}
-
-// 窗口控制
-// 直接为按钮添加点击事件监听器，确保事件能够正确触发
-addButtonClickListener(minimizeButton, function(e) {
+// 窗口控制 - 简化事件处理
+minimizeButton.addEventListener('click', (e) => {
+  e.preventDefault();
   e.stopPropagation();
   console.log('最小化按钮被点击');
-  try {
-    ipcRenderer.send('minimize-window');
-  } catch (error) {
-    console.error('最小化按钮错误:', error);
-  }
+  ipcRenderer.send('minimize-window');
 });
 
-addButtonClickListener(maximizeButton, function(e) {
+maximizeButton.addEventListener('click', (e) => {
+  e.preventDefault();
   e.stopPropagation();
   console.log('最大化按钮被点击');
-  try {
-    ipcRenderer.send('maximize-window');
-  } catch (error) {
-    console.error('最大化按钮错误:', error);
-  }
+  ipcRenderer.send('maximize-window');
 });
 
-addButtonClickListener(closeButton, function(e) {
+closeButton.addEventListener('click', (e) => {
+  e.preventDefault();
   e.stopPropagation();
   console.log('关闭按钮被点击');
-  try {
-    ipcRenderer.send('close-window');
-  } catch (error) {
-    console.error('关闭按钮错误:', error);
-  }
+  ipcRenderer.send('close-window');
 });
 
 // 标题栏拖拽
 const titleBar = document.getElementById('title-bar');
 titleBar.addEventListener('mousedown', (e) => {
   // 排除按钮区域，防止点击按钮时触发拖拽
-  const targetElement = e.target;
-  if (targetElement.closest('.title-bar-button') || 
-      targetElement.closest('#settings-panel') || 
-      targetElement.closest('#reserve-modal')) {
+  if (e.target.closest('.title-bar-button') || 
+      e.target.closest('#settings-panel') || 
+      e.target.closest('#reserve-modal')) {
     return;
   }
   
+  // 只在标题栏区域（非按钮）时开始拖拽
   if (e.target === titleBar || e.target === document.getElementById('app-title')) {
-    remote.getCurrentWindow().startDrag();
+    // 简单直接的方式：使用remote模块（临时解决方案）
+    try {
+      const { remote } = require('electron');
+      remote.getCurrentWindow().startDrag();
+    } catch (err) {
+      console.log('拖拽功能不可用:', err);
+    }
   }
 });
 
 // 设置面板
-addButtonClickListener(settingsButton, (e) => {
+settingsButton.addEventListener('click', (e) => {
+  e.preventDefault();
   e.stopPropagation();
   console.log('设置按钮被点击');
   settingsPanel.classList.toggle('open');
@@ -88,14 +69,16 @@ addButtonClickListener(settingsButton, (e) => {
 });
 
 // 预约弹窗
-addButtonClickListener(reserveButton, (e) => {
+reserveButton.addEventListener('click', (e) => {
+  e.preventDefault();
   e.stopPropagation();
   console.log('预约按钮被点击');
   reserveModal.classList.add('open');
 });
 
 // 为预约弹窗关闭按钮添加点击事件
-addButtonClickListener(reserveModalClose, (e) => {
+reserveModalClose.addEventListener('click', (e) => {
+  e.preventDefault();
   e.stopPropagation();
   console.log('关闭预约弹窗按钮被点击');
   reserveModal.classList.remove('open');
@@ -241,20 +224,7 @@ mainWebview.addEventListener('did-stop-loading', () => {
 
 // 创建外部链接窗口
 function createExternalWindow(url) {
-  const win = new BrowserWindow({
-    width: 1000,
-    height: 700,
-    frame: false,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      enableRemoteModule: true
-    }
-  });
-
-  win.loadFile('external-window.html', {
-    query: { url }
-  });
+  ipcRenderer.send('create-external-window', url);
 }
 
 // 预约窗口的下载处理
@@ -274,10 +244,8 @@ reserveWebview.addEventListener('will-download', (e) => {
 // 音频播放函数
 function playAudio(audioType) {
   try {
-    // 构建音频文件的绝对路径
-    const audioPath = path.join(app.getAppPath(), 'src', `${audioType}.mp3`);
-    console.log(`播放音频文件: ${audioPath}`);
-    const audio = new Audio(`file://${audioPath}`);
+    // 使用相对路径播放音频
+    const audio = new Audio(`src/${audioType}.mp3`);
     audio.play().catch(error => {
       console.error(`播放${audioType}.mp3失败:`, error);
     });

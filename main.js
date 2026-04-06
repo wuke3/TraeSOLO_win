@@ -30,6 +30,7 @@ function saveSettings(settings) {
 
 // 全局变量
 let mainWindow;
+let externalWindows = [];
 let settings = readSettings();
 
 // 创建主窗口
@@ -53,6 +54,30 @@ function createMainWindow() {
   // 窗口关闭时触发
   mainWindow.on('closed', function () {
     mainWindow = null;
+  });
+}
+
+// 创建外部链接窗口
+function createExternalWindow(url) {
+  const win = new BrowserWindow({
+    width: 1000,
+    height: 700,
+    frame: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      enableRemoteModule: true
+    }
+  });
+
+  win.loadFile('external-window.html', {
+    query: { url }
+  });
+
+  externalWindows.push(win);
+  
+  win.on('closed', () => {
+    externalWindows = externalWindows.filter(w => w !== win);
   });
 }
 
@@ -101,6 +126,17 @@ ipcMain.on('close-window', (event) => {
   if (mainWindow) {
     mainWindow.close();
   }
+});
+
+// 处理窗口拖拽（备用方案）
+ipcMain.on('drag-window', (event) => {
+  // 拖拽现在在渲染进程中直接处理
+  // 这里保留作为备用
+});
+
+// 处理创建外部窗口请求
+ipcMain.on('create-external-window', (event, url) => {
+  createExternalWindow(url);
 });
 
 // 处理下载请求
