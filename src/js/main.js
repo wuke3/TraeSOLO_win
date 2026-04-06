@@ -16,11 +16,26 @@ const maximizeButton = document.getElementById('maximize-button');
 const closeButton = document.getElementById('close-button');
 
 // 窗口控制
-minimizeButton.addEventListener('click', () => {
+// 为按钮和其中的SVG图标添加点击事件监听器
+function addButtonClickListener(button, callback) {
+  button.addEventListener('click', (e) => {
+    callback(e);
+  });
+  // 为按钮内的所有SVG图标添加点击事件监听器
+  const svgs = button.querySelectorAll('svg');
+  svgs.forEach(svg => {
+    svg.addEventListener('click', (e) => {
+      e.stopPropagation();
+      callback(e);
+    });
+  });
+}
+
+addButtonClickListener(minimizeButton, () => {
   remote.getCurrentWindow().minimize();
 });
 
-maximizeButton.addEventListener('click', () => {
+addButtonClickListener(maximizeButton, () => {
   const win = remote.getCurrentWindow();
   if (win.isMaximized()) {
     win.unmaximize();
@@ -29,7 +44,7 @@ maximizeButton.addEventListener('click', () => {
   }
 });
 
-closeButton.addEventListener('click', () => {
+addButtonClickListener(closeButton, () => {
   remote.getCurrentWindow().close();
 });
 
@@ -49,8 +64,8 @@ titleBar.addEventListener('mousedown', (e) => {
   }
 });
 
-// 设置面板 - 使用 closest 确保点击 SVG 图标也能触发
-settingsButton.addEventListener('click', (e) => {
+// 设置面板
+addButtonClickListener(settingsButton, (e) => {
   e.stopPropagation();
   console.log('设置按钮被点击');
   settingsPanel.classList.toggle('open');
@@ -58,7 +73,7 @@ settingsButton.addEventListener('click', (e) => {
 });
 
 // 预约弹窗
-reserveButton.addEventListener('click', (e) => {
+addButtonClickListener(reserveButton, (e) => {
   e.stopPropagation();
   console.log('预约按钮被点击');
   reserveModal.classList.add('open');
