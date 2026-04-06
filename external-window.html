@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>外部链接</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      overflow: hidden;
+      transition: background-color 0.3s ease;
+    }
+
+    body.light {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    body.dark {
+      background-color: #1a1a1a;
+      color: #ffffff;
+    }
+
+    /* 主容器 */
+    #main-container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 标题栏 */
+    #title-bar {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+
+    body.light #title-bar {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    body.dark #title-bar {
+      background-color: #2d2d2d;
+      border-bottom: 1px solid #3d3d3d;
+    }
+
+    /* 标题栏左侧 */
+    #title-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #app-title {
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 标题栏右侧 */
+    #title-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* 按钮样式 */
+    .title-bar-button {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+      font-size: 14px;
+    }
+
+    body.light .title-bar-button {
+      background-color: transparent;
+      color: #333333;
+    }
+
+    body.dark .title-bar-button {
+      background-color: transparent;
+      color: #e0e0e0;
+    }
+
+    body.light .title-bar-button:hover {
+      background-color: #e9ecef;
+    }
+
+    body.dark .title-bar-button:hover {
+      background-color: #3d3d3d;
+    }
+
+    /* 操作按钮 */
+    #minimize-button:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    #maximize-button:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    #close-button:hover {
+      background-color: #ff5f56;
+      color: white;
+    }
+
+    /* 内容区域 */
+    #content-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* WebView */
+    webview {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body class="light">
+  <div id="main-container">
+    <!-- 标题栏 -->
+    <div id="title-bar" ondragstart="return false;">
+      <div id="title-bar-left">
+        <div id="app-title">外部链接</div>
+      </div>
+      <div id="title-bar-right">
+        <button id="minimize-button" class="title-bar-button">−</button>
+        <button id="maximize-button" class="title-bar-button">□</button>
+        <button id="close-button" class="title-bar-button">×</button>
+      </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div id="content-area">
+      <webview id="external-webview" webpreferences="nodeIntegration=true,contextIsolation=false"></webview>
+    </div>
+  </div>
+
+  <script>
+    const { remote, ipcRenderer } = require('electron');
+    const { BrowserWindow } = remote;
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUrl = urlParams.get('url');
+
+    // 获取DOM元素
+    const externalWebview = document.getElementById('external-webview');
+    const minimizeButton = document.getElementById('minimize-button');
+    const maximizeButton = document.getElementById('maximize-button');
+    const closeButton = document.getElementById('close-button');
+    const appTitle = document.getElementById('app-title');
+
+    // 设置WebView源
+    externalWebview.src = targetUrl;
+
+    // 更新标题
+    externalWebview.addEventListener('did-start-loading', () => {
+      appTitle.textContent = '加载中...';
+    });
+
+    externalWebview.addEventListener('did-finish-load', () => {
+      externalWebview.executeJavaScript(`
+        document.title
+      `).then(title => {
+        appTitle.textContent = title || '外部链接';
+      });
+    });
+
+    // 窗口控制
+    minimizeButton.addEventListener('click', () => {
+      remote.getCurrentWindow().minimize();
+    });
+
+    maximizeButton.addEventListener('click', () => {
+      const win = remote.getCurrentWindow();
+      if (win.isMaximized()) {
+        win.unmaximize();
+      } else {
+        win.maximize();
+      }
+    });
+
+    closeButton.addEventListener('click', () => {
+      remote.getCurrentWindow().close();
+    });
+
+    // 标题栏拖拽
+    const titleBar = document.getElementById('title-bar');
+    titleBar.addEventListener('mousedown', (e) => {
+      if (e.target === titleBar || e.target === appTitle) {
+        remote.getCurrentWindow().startDrag();
+      }
+    });
+
+    // 处理下载请求
+    externalWebview.addEventListener('will-download', (e) => {
+      const url = e.url;
+      ipcRenderer.send('download-request', url);
+      
+      ipcRenderer.once('download-path', (event, filePath) => {
+        if (filePath) {
+          e.savePath = filePath;
+        } else {
+          e.cancel();
+        }
+      });
+    });
+
+    // 处理外部链接
+    externalWebview.addEventListener('new-window', (e) => {
+      const url = e.url;
+      const currentUrl = externalWebview.src;
+      const currentDomain = new URL(currentUrl).hostname;
+      const targetDomain = new URL(url).hostname;
+
+      if (targetDomain !== currentDomain) {
+        e.preventDefault();
+        createExternalWindow(url);
+      }
+    });
+
+    // 创建外部链接窗口
+    function createExternalWindow(url) {
+      const win = new BrowserWindow({
+        width: 1000,
+        height: 700,
+        frame: false,
+        webPreferences: {
+          nodeIntegration: true,
+          contextIsolation: false
+        }
+      });
+
+      win.loadFile('external-window.html', {
+        query: { url }
+      });
+    }
+  </script>
+</body>
+</html>
