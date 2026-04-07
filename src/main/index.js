@@ -3,10 +3,12 @@ const { createLogger } = require('../utils/logger');
 const { readSettings } = require('./settings');
 const {
   createMainWindow,
-  unregisterAllShortcuts
+  unregisterAllShortcuts,
+  quitApp
 } = require('./window-manager');
 const { setupIpcHandlers } = require('./ipc-handlers');
 const { setupWebviewEvents } = require('./webview-manager');
+const { setupTray, updateTrayIcon, destroyTray } = require('./tray-manager');
 
 const logger = createLogger('Main');
 
@@ -41,19 +43,21 @@ function setupAppEvents() {
     setupIpcHandlers();
     setupWebviewEvents();
     createMainWindow();
+    setupTray();
   });
 
   app.on('window-all-closed', () => {
     logger.info('All windows closed');
     unregisterAllShortcuts();
     if (process.platform !== 'darwin') {
-      app.quit();
+      quitApp();
     }
   });
 
   app.on('will-quit', () => {
     logger.info('App will quit');
     unregisterAllShortcuts();
+    destroyTray();
   });
 
   app.on('activate', () => {

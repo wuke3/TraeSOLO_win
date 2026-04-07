@@ -55,7 +55,9 @@ const SETTINGS_FILENAME = 'settings.json';
 
 const DEFAULT_SETTINGS = {
   domain: 'cn',
-  darkMode: false
+  darkMode: false,
+  minimizeToTray: true,
+  closeToTray: true
 };
 
 module.exports = {

@@ -41,6 +41,15 @@ function createMainWindow() {
   mainWindow = new BrowserWindow(createWindowOptions('main'));
   mainWindow.loadFile('index.html');
 
+  mainWindow.on('close', function (event) {
+    const settings = getSettings();
+    if (settings.closeToTray && mainWindow && !mainWindow.isQuitting) {
+      logger.info('Main window close intercepted, hiding to tray');
+      event.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
   mainWindow.on('closed', function () {
     logger.info('Main window closed');
     mainWindow = null;
@@ -130,6 +139,14 @@ function unregisterAllShortcuts() {
   globalShortcut.unregisterAll();
 }
 
+function quitApp() {
+  logger.info('Quitting app');
+  if (mainWindow) {
+    mainWindow.isQuitting = true;
+    mainWindow.close();
+  }
+}
+
 module.exports = {
   createMainWindow,
   createExternalWindow,
@@ -138,5 +155,6 @@ module.exports = {
   setPendingExternalUrl,
   getAndClearPendingExternalUrl,
   findWindowByWebContents,
-  unregisterAllShortcuts
+  unregisterAllShortcuts,
+  quitApp
 };

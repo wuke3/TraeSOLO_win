@@ -4,6 +4,7 @@ const { createLogger } = require('../utils/logger');
 const { validators, isValidDomain, isValidBoolean, isValidUrl } = require('../utils/validators');
 const { ICON_PATHS } = require('../config/constants');
 const { getSettings, saveSettings } = require('./settings');
+const { updateTrayIcon } = require('./tray-manager');
 const {
   createExternalWindow,
   findWindowByWebContents,
@@ -40,7 +41,20 @@ function setupIpcHandlers() {
         validated.darkMode = newSettings.darkMode;
       }
       
+      if (newSettings.minimizeToTray !== undefined && isValidBoolean(newSettings.minimizeToTray)) {
+        validated.minimizeToTray = newSettings.minimizeToTray;
+      }
+      
+      if (newSettings.closeToTray !== undefined && isValidBoolean(newSettings.closeToTray)) {
+        validated.closeToTray = newSettings.closeToTray;
+      }
+      
       const updated = saveSettings(validated);
+      
+      if (validated.darkMode !== undefined) {
+        updateTrayIcon();
+      }
+      
       event.reply('settings-updated', updated);
     } catch (error) {
       logger.error('Failed to update settings', { error: error.message });
