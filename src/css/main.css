@@ -39,6 +39,7 @@ body.dark {
   transition: background-color 0.3s ease;
   position: relative;
   z-index: 10;
+  -webkit-app-region: drag;
 }
 
 body.light #title-bar {
@@ -56,6 +57,12 @@ body.dark #title-bar {
   display: flex;
   align-items: center;
   gap: 8px;
+  -webkit-app-region: drag;
+  pointer-events: none;
+}
+
+#title-bar-left > * {
+  pointer-events: auto;
 }
 
 #app-icon {
@@ -92,6 +99,7 @@ body.dark #title-bar {
   justify-content: center;
   transition: background-color 0.2s ease;
   font-size: 14px;
+  -webkit-app-region: no-drag;
 }
 
 body.light .title-bar-button {

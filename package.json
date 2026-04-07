@@ -6,6 +6,8 @@
   "homepage": "https://www.trae.cn",
   "scripts": {
     "start": "electron .",
+    "start:dev": "set NODE_ENV=development&& electron .",
+    "start:prod": "set NODE_ENV=production&& electron .",
     "build": "electron-builder",
     "build:win": "electron-builder --win",
     "build:linux": "electron-builder --linux"
@@ -21,8 +23,8 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^24.0.0"
+    "electron": "28.3.3",
+    "electron-builder": "24.13.3"
   },
   "build": {
     "appId": "com.trae.solo-win",
