@@ -1,4 +1,4 @@
-const { BrowserWindow, globalShortcut, screen } = require('electron');
+const { app, BrowserWindow, globalShortcut, screen } = require('electron');
 const path = require('path');
 const { createLogger } = require('../utils/logger');
 const { WINDOW_CONFIG, ICON_PATHS } = require('../config/constants');
@@ -141,9 +141,13 @@ function unregisterAllShortcuts() {
 
 function quitApp() {
   logger.info('Quitting app');
+  const { destroyTray } = require('./tray-manager');
+  destroyTray();
   if (mainWindow) {
     mainWindow.isQuitting = true;
     mainWindow.close();
+  } else {
+    app.quit();
   }
 }
 

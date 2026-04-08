@@ -49,8 +49,9 @@ function setupAppEvents() {
   app.on('window-all-closed', () => {
     logger.info('All windows closed');
     unregisterAllShortcuts();
+    destroyTray();
     if (process.platform !== 'darwin') {
-      quitApp();
+      app.quit();
     }
   });
 
