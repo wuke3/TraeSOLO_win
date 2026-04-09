@@ -11,7 +11,7 @@
 ![GitHub issues](https://img.shields.io/github/issues/wuke3/TraeSOLO_win?style=for-the-badge)
 ![GitHub last commit](https://img.shields.io/github/last-commit/wuke3/TraeSOLO_win?style=for-the-badge)
 
-![Electron](https://img.shields.io/badge/Electron-28.0.0-47848F?style=for-the-badge&logo=electron&logoColor=white)
+![Electron](https://img.shields.io/badge/Electron-28.3.3-47848F?style=for-the-badge&logo=electron&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-14%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D4?style=for-the-badge&logo=windows&logoColor=white)
 
@@ -49,6 +49,7 @@
 - ✅ **文件下载** - 点击下载直接弹出保存对话框，无需打开浏览器
 - ✅ **文件拖拽上传** - 支持将文件拖拽到页面进行上传
 - ✅ **窗口拖拽** - 流畅的标题栏拖拽功能
+- ✅ **音频反馈** - 基于页面控制台输出的成功/错误音频提示
 
 ### 🎨 UI 特性
 - 🎯 **统一设计风格** - 所有按钮采用一致的现代化设计
@@ -63,7 +64,7 @@
 
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| ![Electron](https://img.shields.io/badge/Electron-28.0.0-47848F?style=flat-square) | 28.0.0 | 跨平台桌面应用框架 |
+| ![Electron](https://img.shields.io/badge/Electron-28.3.3-47848F?style=flat-square) | 28.3.3 | 跨平台桌面应用框架 |
 | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white) | 5 | 页面结构 |
 | ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white) | 3 | 样式设计 |
 | ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | ES6+ | 交互逻辑 |
@@ -88,8 +89,8 @@ TRAE SOLO Win/
     │   └── 📄 external-window.js
     ├── 🖼️  light.png           # 浅色模式图标
     ├── 🖼️  dark.png            # 深色模式图标
-    ├── 🔊 success.mp3
-    └── 🔊 error.mp3
+    ├── 🔊 success.mp3          # 成功音频提示
+    └── 🔊 error.mp3            # 错误音频提示
 ```
 
 ---
@@ -99,12 +100,20 @@ TRAE SOLO Win/
 ### 📋 前提条件
 
 - ![Node.js](https://img.shields.io/badge/Node.js-v14.0.0%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white) Node.js (v14.0.0 或更高版本)
-- ![npm](https://img.shields.io/badge/npm-v6.0.0%2B-CB3837?style=flat-square&logo=npm&logoColor=white) npm (v6.0.0 或更高版本)
+- ![npm](https://img.shields.io/badge/npm-v6.0.0%2B-CB3837?style=flat-square&logo=npm&logoColor=white) npm (v6.0.0 或更高版本) 或 ![pnpm](https://img.shields.io/badge/pnpm-v6.0.0%2B-F69220?style=flat-square&logo=pnpm&logoColor=white) pnpm
 
 ### 📦 安装依赖
 
+使用 npm：
+
 ```bash
 npm install
+```
+
+或使用 pnpm：
+
+```bash
+pnpm install
 ```
 
 ### 🔧 开发模式运行
@@ -118,18 +127,22 @@ npm start
 #### Windows 版本
 
 ```bash
-npm run build
+npm run build:win
 ```
 
-构建产物将生成在 `dist` 目录中，包含 NSIS 安装程序。
+构建产物将生成在 `dist` 目录中，包含 NSIS 安装程序和便携版。
 
 #### Linux 版本
 
 ```bash
-npm run build
+npm run build:linux
 ```
 
-构建产物将生成在 `dist` 目录中，包含 DEB 安装包。
+构建产物将生成在 `dist` 目录中，包含以下格式：
+- DEB 包 (x64, arm64)
+- RPM 包 (x64, arm64)
+- AppImage (x64, arm64)
+- Snap 包 (x64, arm64)
 
 ---
 
@@ -151,7 +164,7 @@ npm run build
    - 🟢 浅色模式 → light.png 图标
    - 🔵 深色模式 → dark.png 图标
 
-### 📝 预约 Windows 版本
+### 📝 预约功能
 
 1. 点击顶部标题栏的 📋 **预约** 按钮
 2. 应用程序会根据当前服务器自动打开对应预约页面：
@@ -175,6 +188,12 @@ npm run build
 - 支持将文件直接拖拽到页面中
 - 拖拽功能不会影响网页原有的其他功能
 
+### 🔊 音频反馈
+
+- 当页面控制台输出成功信息时，会播放 success.mp3
+- 当页面控制台输出错误信息时，会播放 error.mp3
+- 音频文件位于 src 目录中
+
 ---
 
 ## ❓ 常见问题
@@ -182,7 +201,7 @@ npm run build
 ### 应用程序无法启动
 
 1. 检查 Node.js 和 npm 是否正确安装
-2. 确保所有依赖已成功安装 (`npm install`)
+2. 确保所有依赖已成功安装 (`npm install` 或 `pnpm install`)
 3. 检查网络连接是否正常
 4. 查看控制台错误信息（按 F12 打开开发者工具）
 
@@ -203,6 +222,12 @@ npm run build
 1. 检查是否有文件保存对话框弹出
 2. 确保有足够的磁盘空间
 3. 检查下载目录的写入权限
+
+### 音频反馈不工作
+
+1. 确认 `src/success.mp3` 和 `src/error.mp3` 文件存在
+2. 检查系统音量设置
+3. 查看控制台是否有音频相关错误
 
 ---
 
