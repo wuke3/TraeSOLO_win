@@ -21,21 +21,6 @@
 
 **TRAE SOLO Win** 是一个基于 Electron 开发的跨平台桌面应用程序，为 TRAE SOLO 的网页版提供原生的桌面使用体验。
 
----
-
-## 🎨 应用截图
-
-### 🌞 浅色模式
-<div align="center">
-  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20desktop%20application%20interface%20with%20clean%20UI%2C%20light%20mode%2C%20white%20background%2C%20minimal%20design%2C%20trae%20solo%20logo&image_size=landscape_16_9" alt="浅色模式" width="700">
-</div>
-
-### 🌙 深色模式
-<div align="center">
-  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20desktop%20application%20interface%20with%20clean%20UI%2C%20dark%20mode%2C%20black%20background%2C%20minimal%20design%2C%20trae%20solo%20logo&image_size=landscape_16_9" alt="深色模式" width="700">
-</div>
-
----
 
 ## 🚀 功能特性
 
