@@ -2,7 +2,7 @@ const { app } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { createLogger } = require('../utils/logger');
-const { SETTINGS_FILENAME, DEFAULT_SETTINGS } = require('../config/constants');
+const { SETTINGS_FILENAME, DEFAULT_SETTINGS, SETTINGS_WHITELIST } = require('../config/constants');
 
 const logger = createLogger('Settings');
 
@@ -14,7 +14,13 @@ function readSettings() {
     if (fs.existsSync(settingsPath)) {
       const data = fs.readFileSync(settingsPath, 'utf8');
       const parsed = JSON.parse(data);
-      currentSettings = { ...DEFAULT_SETTINGS, ...parsed };
+      const filtered = {};
+      for (const key of SETTINGS_WHITELIST) {
+        if (parsed[key] !== undefined) {
+          filtered[key] = parsed[key];
+        }
+      }
+      currentSettings = { ...DEFAULT_SETTINGS, ...filtered };
       logger.debug('Settings loaded', currentSettings);
       return currentSettings;
     }
@@ -29,7 +35,15 @@ function readSettings() {
 
 function saveSettings(settings) {
   try {
-    currentSettings = { ...currentSettings, ...settings };
+    const filtered = {};
+    for (const key of Object.keys(settings)) {
+      if (SETTINGS_WHITELIST.includes(key)) {
+        filtered[key] = settings[key];
+      } else {
+        logger.warn('Rejected non-whitelisted setting key', { key });
+      }
+    }
+    currentSettings = { ...currentSettings, ...filtered };
     fs.writeFileSync(settingsPath, JSON.stringify(currentSettings, null, 2));
     logger.debug('Settings saved', currentSettings);
     return currentSettings;

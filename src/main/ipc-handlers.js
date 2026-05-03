@@ -1,7 +1,7 @@
-const { ipcMain, BrowserWindow, screen, shell } = require('electron');
+const { ipcMain, BrowserWindow, screen, shell, app } = require('electron');
 const path = require('path');
 const { createLogger } = require('../utils/logger');
-const { validators, isValidDomain, isValidBoolean, isValidUrl } = require('../utils/validators');
+const { isValidDomain, isValidBoolean, isValidUrl, isValidNumber } = require('../utils/validators');
 const { ICON_PATHS } = require('../config/constants');
 const { getSettings, saveSettings } = require('./settings');
 const { updateTrayIcon } = require('./tray-manager');
@@ -47,6 +47,24 @@ function setupIpcHandlers() {
       
       if (newSettings.closeToTray !== undefined && isValidBoolean(newSettings.closeToTray)) {
         validated.closeToTray = newSettings.closeToTray;
+      }
+      
+      if (newSettings.autoStart !== undefined && isValidBoolean(newSettings.autoStart)) {
+        validated.autoStart = newSettings.autoStart;
+        app.setLoginItemSettings({
+          openAtLogin: newSettings.autoStart,
+          path: app.getPath('exe')
+        });
+        logger.info('Auto-start setting updated', { autoStart: newSettings.autoStart });
+      }
+      
+      if (newSettings.windowBounds !== undefined && newSettings.windowBounds !== null) {
+        const b = newSettings.windowBounds;
+        if (typeof b === 'object' && 
+            isValidNumber(b.x) && isValidNumber(b.y) && 
+            isValidNumber(b.width, 100) && isValidNumber(b.height, 100)) {
+          validated.windowBounds = b;
+        }
       }
       
       const updated = saveSettings(validated);

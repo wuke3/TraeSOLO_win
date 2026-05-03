@@ -12,37 +12,56 @@ function setupWindowControls(options = {}) {
   const maximizeButton = document.getElementById(maximizeBtnId);
   const closeButton = document.getElementById(closeBtnId);
 
-  const handleButtonClick = (action) => (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      window.electronAPI.send(`${action}-${prefix}window`);
-    } catch (error) {
-      console.error(`[WindowControls] ${action} failed:`, error);
-    }
-  };
+  const handlers = {};
 
   if (minimizeButton) {
-    minimizeButton.addEventListener('click', handleButtonClick('minimize'));
+    handlers.minimize = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        window.electronAPI.send(`minimize-${prefix}window`);
+      } catch (error) {
+        console.error('[WindowControls] minimize failed:', error);
+      }
+    };
+    minimizeButton.addEventListener('click', handlers.minimize);
   }
 
   if (maximizeButton) {
-    maximizeButton.addEventListener('click', handleButtonClick('maximize'));
+    handlers.maximize = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        window.electronAPI.send(`maximize-${prefix}window`);
+      } catch (error) {
+        console.error('[WindowControls] maximize failed:', error);
+      }
+    };
+    maximizeButton.addEventListener('click', handlers.maximize);
   }
 
   if (closeButton) {
-    closeButton.addEventListener('click', handleButtonClick('close'));
+    handlers.close = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        window.electronAPI.send(`close-${prefix}window`);
+      } catch (error) {
+        console.error('[WindowControls] close failed:', error);
+      }
+    };
+    closeButton.addEventListener('click', handlers.close);
   }
 
   return () => {
-    if (minimizeButton) {
-      minimizeButton.removeEventListener('click', handleButtonClick('minimize'));
+    if (minimizeButton && handlers.minimize) {
+      minimizeButton.removeEventListener('click', handlers.minimize);
     }
-    if (maximizeButton) {
-      maximizeButton.removeEventListener('click', handleButtonClick('maximize'));
+    if (maximizeButton && handlers.maximize) {
+      maximizeButton.removeEventListener('click', handlers.maximize);
     }
-    if (closeButton) {
-      closeButton.removeEventListener('click', handleButtonClick('close'));
+    if (closeButton && handlers.close) {
+      closeButton.removeEventListener('click', handlers.close);
     }
   };
 }

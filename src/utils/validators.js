@@ -36,6 +36,12 @@ function sanitizeUrl(url) {
   }
 }
 
+function isDomainMatch(hostname, suffix) {
+  if (hostname === suffix) return true;
+  const dotSuffix = '.' + suffix;
+  return hostname.endsWith(dotSuffix);
+}
+
 function isExternalLink(currentUrl, targetUrl) {
   try {
     if (!currentUrl || !targetUrl) {
@@ -60,8 +66,8 @@ function isExternalLink(currentUrl, targetUrl) {
     }
     
     const isInternal = EXTERNAL_LINK_DOMAINS.allowedSuffixes.some(
-      suffix => targetDomain.endsWith(suffix)
-    ) || targetDomain === currentDomain || targetDomain.endsWith('.' + currentDomain);
+      suffix => isDomainMatch(targetDomain, suffix)
+    ) || targetDomain === currentDomain || isDomainMatch(targetDomain, currentDomain);
     
     return !isInternal;
   } catch {
@@ -117,6 +123,7 @@ module.exports = {
   isValidNumber,
   sanitizeUrl,
   isExternalLink,
+  isDomainMatch,
   validateIpcMessage,
   validators
 };

@@ -14,8 +14,10 @@ function setupTitleBarDrag(options = {}) {
   }
 
   let isDragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
+  let dragStartWindowX = 0;
+  let dragStartWindowY = 0;
+  let dragStartCursorX = 0;
+  let dragStartCursorY = 0;
 
   const handleMouseDown = async (e) => {
     if (e.target.closest('.' + buttonClass) || 
@@ -33,8 +35,10 @@ function setupTitleBarDrag(options = {}) {
         const cursorPos = await window.electronAPI.invoke('get-cursor-position');
         const winPos = await window.electronAPI.invoke('get-window-position');
         
-        offsetX = cursorPos.x - winPos[0];
-        offsetY = cursorPos.y - winPos[1];
+        dragStartCursorX = cursorPos.x;
+        dragStartCursorY = cursorPos.y;
+        dragStartWindowX = winPos[0];
+        dragStartWindowY = winPos[1];
       } catch (err) {
         console.error('[TitleBarDrag] Failed to get position:', err);
         isDragging = false;
@@ -47,14 +51,18 @@ function setupTitleBarDrag(options = {}) {
 
     try {
       const cursorPos = await window.electronAPI.invoke('get-cursor-position');
-      window.electronAPI.send('set-window-position', cursorPos.x - offsetX, cursorPos.y - offsetY);
+      const dx = cursorPos.x - dragStartCursorX;
+      const dy = cursorPos.y - dragStartCursorY;
+      window.electronAPI.send('set-window-position', dragStartWindowX + dx, dragStartWindowY + dy);
     } catch (err) {
       console.error('[TitleBarDrag] Failed to move window:', err);
     }
   };
 
   const handleMouseUp = () => {
-    isDragging = false;
+    if (isDragging) {
+      isDragging = false;
+    }
   };
 
   titleBar.addEventListener('mousedown', handleMouseDown);

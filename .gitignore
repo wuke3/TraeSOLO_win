@@ -36,3 +36,4 @@ build/
 Thumbs.db
 
 .pnpm-store/
+.trae/

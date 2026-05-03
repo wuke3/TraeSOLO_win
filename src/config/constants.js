@@ -1,5 +1,7 @@
 const path = require('path');
 
+const IS_DEV = process.env.NODE_ENV !== 'production';
+
 const APP_CONFIG = {
   appId: 'com.trae.solo-win',
   productName: 'TRAE SOLO Win',
@@ -53,14 +55,19 @@ const ICON_PATHS = {
 
 const SETTINGS_FILENAME = 'settings.json';
 
+const SETTINGS_WHITELIST = ['domain', 'darkMode', 'minimizeToTray', 'closeToTray', 'autoStart', 'windowBounds'];
+
 const DEFAULT_SETTINGS = {
   domain: 'cn',
   darkMode: false,
   minimizeToTray: true,
-  closeToTray: true
+  closeToTray: true,
+  autoStart: false,
+  windowBounds: null
 };
 
 module.exports = {
+  IS_DEV,
   APP_CONFIG,
   WINDOW_CONFIG,
   DOMAIN_CONFIG,
@@ -68,5 +75,6 @@ module.exports = {
   THEME_CONFIG,
   ICON_PATHS,
   SETTINGS_FILENAME,
+  SETTINGS_WHITELIST,
   DEFAULT_SETTINGS
 };

@@ -35,13 +35,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   on: (channel, callback) => {
-    const validChannels = ['settings', 'settings-updated'];
+    const validChannels = ['settings', 'settings-updated', 'load-external-url'];
     if (validChannels.includes(channel)) {
-      ipcRenderer.on(channel, (event, ...args) => callback(...args));
+      const subscription = (event, ...args) => callback(...args);
+      ipcRenderer.on(channel, subscription);
+      return subscription;
+    }
+    return null;
+  },
+
+  removeListener: (channel, subscription) => {
+    const validChannels = ['settings', 'settings-updated', 'load-external-url'];
+    if (validChannels.includes(channel) && subscription) {
+      ipcRenderer.removeListener(channel, subscription);
     }
   },
 
-  removeListener: (channel, callback) => {
-    ipcRenderer.removeListener(channel, callback);
+  removeAllListeners: (channel) => {
+    const validChannels = ['settings', 'settings-updated', 'load-external-url'];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.removeAllListeners(channel);
+    }
   }
 });

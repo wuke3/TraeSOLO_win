@@ -1,3 +1,7 @@
+const fs = require('fs');
+const path = require('path');
+const { app } = require('electron');
+
 const LOG_LEVELS = {
   DEBUG: 0,
   INFO: 1,
@@ -6,6 +10,65 @@ const LOG_LEVELS = {
 };
 
 const LOG_LEVEL_NAMES = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
+
+const MAX_LOG_SIZE = 5 * 1024 * 1024;
+const MAX_LOG_FILES = 5;
+
+let logDir = null;
+let currentLogFile = null;
+
+function ensureLogDir() {
+  if (!logDir) {
+    try {
+      logDir = path.join(app.getPath('userData'), 'logs');
+      if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+      }
+    } catch (error) {
+      console.error('Failed to create log directory:', error.message);
+      return null;
+    }
+  }
+  return logDir;
+}
+
+function getLogFilePath() {
+  const dir = ensureLogDir();
+  if (!dir) return null;
+  const date = new Date().toISOString().split('T')[0];
+  return path.join(dir, `app-${date}.log`);
+}
+
+function rotateLogs() {
+  const dir = ensureLogDir();
+  if (!dir) return;
+  try {
+    const files = fs.readdirSync(dir)
+      .filter(f => f.startsWith('app-') && f.endsWith('.log'))
+      .sort()
+      .reverse();
+    while (files.length > MAX_LOG_FILES) {
+      const toDelete = files.pop();
+      fs.unlinkSync(path.join(dir, toDelete));
+    }
+  } catch (error) {
+    console.error('Log rotation failed:', error.message);
+  }
+}
+
+function writeToFile(formatted) {
+  const filePath = getLogFilePath();
+  if (!filePath) return;
+  try {
+    if (filePath !== currentLogFile) {
+      currentLogFile = filePath;
+      rotateLogs();
+    }
+    fs.appendFileSync(filePath, formatted + '\n');
+  } catch (error) {
+    console.error('Failed to write log file:', error.message);
+  }
+}
 
 class Logger {
   constructor(moduleName = 'App') {
@@ -40,6 +103,10 @@ class Logger {
         console.warn(formatted);
       } else {
         console.log(formatted);
+      }
+
+      if (level >= LOG_LEVELS.INFO) {
+        writeToFile(formatted);
       }
     }
   }

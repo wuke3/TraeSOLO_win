@@ -5,30 +5,14 @@ const { createExternalWindow, getMainWindow } = require('./window-manager');
 
 const logger = createLogger('WebviewManager');
 
+const HIDE_SCROLLBAR_CSS = `
+  ::-webkit-scrollbar { display: none !important; }
+  html, body { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+  * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+`;
+
 function injectHideScrollbarCSS(contents) {
-  contents.executeJavaScript(`
-    (function() {
-      if (document.getElementById('hide-scrollbar-style')) {
-        return;
-      }
-      const style = document.createElement('style');
-      style.id = 'hide-scrollbar-style';
-      style.textContent = \`
-        ::-webkit-scrollbar {
-          display: none !important;
-        }
-        html, body {
-          scrollbar-width: none !important;
-          -ms-overflow-style: none !important;
-        }
-        * {
-          scrollbar-width: none !important;
-          -ms-overflow-style: none !important;
-        }
-      \`;
-      document.head.appendChild(style);
-    })();
-  `).catch(err => {
+  contents.insertCSS(HIDE_SCROLLBAR_CSS).catch(err => {
     logger.warn('Failed to inject scrollbar CSS', { error: err.message });
   });
 }
@@ -39,8 +23,15 @@ function injectClickHandler(contents) {
       document.addEventListener('click', function(e) {
         let target = e.target;
         while (target && target !== document) {
+          if (target.tagName === 'A' && target.href && target.target === '_blank') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.ipcRenderer) {
+              window.ipcRenderer.send('webview-button-click', target.href);
+            }
+            return;
+          }
           if (target.tagName === 'BUTTON' || 
-              target.tagName === 'A' ||
               target.classList.contains('button-utcdjo') ||
               target.classList.contains('label-mfBJsy')) {
             
@@ -52,8 +43,6 @@ function injectClickHandler(contents) {
                 
                 if (window.ipcRenderer) {
                   window.ipcRenderer.send('webview-button-click', parentA.href);
-                } else {
-                  window.parent.postMessage({ type: 'webview-button-click', url: parentA.href }, '*');
                 }
                 return;
               }
@@ -76,12 +65,19 @@ function setupWebviewEvents() {
     if (isWebview) {
       logger.debug('Webview created');
       
+      contents.setWindowOpenHandler(({ url }) => {
+        logger.debug('Window open requested', { url });
+        createExternalWindow(url);
+        return { action: 'deny' };
+      });
+
+      injectHideScrollbarCSS(contents);
+
       contents.on('did-start-loading', () => {
         injectHideScrollbarCSS(contents);
       });
       
       contents.on('dom-ready', () => {
-        injectHideScrollbarCSS(contents);
         injectClickHandler(contents);
       });
       
@@ -90,14 +86,17 @@ function setupWebviewEvents() {
         
         try {
           const hostWebContents = webContents.hostWebContents;
-          const win = hostWebContents ? BrowserWindow.fromWebContents(hostWebContents) : getMainWindow();
+          let win = hostWebContents ? BrowserWindow.fromWebContents(hostWebContents) : null;
+          if (!win) {
+            win = getMainWindow();
+          }
           
-          const { filePath, canceled } = await dialog.showSaveDialog(win || getMainWindow(), {
+          const { filePath, canceled } = await dialog.showSaveDialog(win || undefined, {
             title: '保存文件',
             defaultPath: item.getFilename()
           });
           
-          if (canceled) {
+          if (canceled || !filePath) {
             return;
           }
           
@@ -114,12 +113,6 @@ function setupWebviewEvents() {
         } catch (error) {
           logger.error('Download handler error', { error: error.message });
         }
-      });
-      
-      contents.on('new-window', (event, navigationUrl) => {
-        logger.debug('New window requested', { url: navigationUrl });
-        event.preventDefault();
-        createExternalWindow(navigationUrl);
       });
       
       contents.on('will-navigate', (event, navigationUrl) => {

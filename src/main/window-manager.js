@@ -1,7 +1,7 @@
 const { app, BrowserWindow, globalShortcut, screen } = require('electron');
 const path = require('path');
 const { createLogger } = require('../utils/logger');
-const { WINDOW_CONFIG, ICON_PATHS } = require('../config/constants');
+const { WINDOW_CONFIG, ICON_PATHS, IS_DEV } = require('../config/constants');
 const { getSettings } = require('./settings');
 
 const logger = createLogger('WindowManager');
@@ -9,8 +9,6 @@ const logger = createLogger('WindowManager');
 let mainWindow = null;
 let externalWindows = [];
 let pendingExternalUrl = null;
-
-const isDev = process.env.NODE_ENV !== 'production';
 
 function createWindowOptions(type) {
   const config = type === 'external' ? WINDOW_CONFIG.external : WINDOW_CONFIG.main;
@@ -29,7 +27,7 @@ function createWindowOptions(type) {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
-      devTools: isDev,
+      devTools: IS_DEV,
       webviewTag: true
     }
   };
@@ -38,12 +36,25 @@ function createWindowOptions(type) {
 function createMainWindow() {
   logger.info('Creating main window');
   
-  mainWindow = new BrowserWindow(createWindowOptions('main'));
+  const settings = getSettings();
+  const savedBounds = settings.windowBounds || {};
+  
+  const options = createWindowOptions('main');
+  if (savedBounds.width && savedBounds.height) {
+    options.width = savedBounds.width;
+    options.height = savedBounds.height;
+  }
+  if (savedBounds.x !== undefined && savedBounds.y !== undefined) {
+    options.x = savedBounds.x;
+    options.y = savedBounds.y;
+  }
+  
+  mainWindow = new BrowserWindow(options);
   mainWindow.loadFile('index.html');
 
   mainWindow.on('close', function (event) {
-    const settings = getSettings();
-    if (settings.closeToTray && mainWindow && !mainWindow.isQuitting) {
+    const currentSettings = getSettings();
+    if (currentSettings.closeToTray && mainWindow && !mainWindow.isQuitting) {
       logger.info('Main window close intercepted, hiding to tray');
       event.preventDefault();
       mainWindow.hide();
@@ -55,7 +66,7 @@ function createMainWindow() {
     mainWindow = null;
   });
 
-  if (isDev) {
+  if (IS_DEV) {
     globalShortcut.register('F12', () => {
       if (mainWindow) {
         mainWindow.webContents.toggleDevTools();
@@ -78,19 +89,13 @@ function createExternalWindow(url) {
   const win = new BrowserWindow(createWindowOptions('external'));
   win.loadFile('external-window.html');
 
-  win.webContents.once('dom-ready', () => {
-    win.webContents.executeJavaScript(`
-      const webview = document.getElementById('external-webview');
-      if (webview) {
-        webview.src = '${url}';
-      }
-    `).catch(err => {
-      logger.error('Failed to set webview src', { error: err.message });
-    });
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.send('load-external-url', url);
+    logger.debug('Sent URL to external window via IPC', { url });
   });
 
   win.webContents.on('before-input-event', (event, input) => {
-    if (isDev && input.key === 'F12') {
+    if (IS_DEV && input.key === 'F12') {
       event.preventDefault();
       win.webContents.toggleDevTools();
     }
@@ -141,8 +146,6 @@ function unregisterAllShortcuts() {
 
 function quitApp() {
   logger.info('Quitting app');
-  const { destroyTray } = require('./tray-manager');
-  destroyTray();
   if (mainWindow) {
     mainWindow.isQuitting = true;
     mainWindow.close();

@@ -1,18 +1,20 @@
-const { app } = require('electron');
+const { app, globalShortcut } = require('electron');
 const { createLogger } = require('../utils/logger');
-const { readSettings } = require('./settings');
+const { readSettings, saveSettings, getSettings } = require('./settings');
 const {
   createMainWindow,
+  getMainWindow,
   unregisterAllShortcuts,
   quitApp
 } = require('./window-manager');
 const { setupIpcHandlers } = require('./ipc-handlers');
 const { setupWebviewEvents } = require('./webview-manager');
 const { setupTray, updateTrayIcon, destroyTray } = require('./tray-manager');
+const { IS_DEV } = require('../config/constants');
 
 const logger = createLogger('Main');
 
-const isDev = process.env.NODE_ENV !== 'production';
+const GLOBAL_SHORTCUT_ACCELERATOR = 'CommandOrControl+Shift+S';
 
 function setupSingleInstanceLock() {
   const gotTheLock = app.requestSingleInstanceLock();
@@ -25,15 +27,52 @@ function setupSingleInstanceLock() {
   
   app.on('second-instance', () => {
     logger.info('Second instance detected, focusing main window');
-    const { getMainWindow } = require('./window-manager');
     const mainWindow = getMainWindow();
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
       mainWindow.focus();
     }
   });
   
   return true;
+}
+
+function registerGlobalShortcut() {
+  try {
+    const ret = globalShortcut.register(GLOBAL_SHORTCUT_ACCELERATOR, () => {
+      logger.debug('Global shortcut triggered');
+      const mainWindow = getMainWindow();
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        if (mainWindow.isVisible()) {
+          mainWindow.hide();
+        } else {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      }
+    });
+    if (ret) {
+      logger.info('Global shortcut registered', { accelerator: GLOBAL_SHORTCUT_ACCELERATOR });
+    } else {
+      logger.warn('Global shortcut registration failed', { accelerator: GLOBAL_SHORTCUT_ACCELERATOR });
+    }
+  } catch (error) {
+    logger.error('Global shortcut error', { error: error.message });
+  }
+}
+
+function saveWindowBounds() {
+  const mainWindow = getMainWindow();
+  if (mainWindow) {
+    try {
+      const bounds = mainWindow.getBounds();
+      saveSettings({ windowBounds: bounds });
+    } catch (error) {
+      logger.error('Failed to save window bounds', { error: error.message });
+    }
+  }
 }
 
 function setupAppEvents() {
@@ -43,26 +82,61 @@ function setupAppEvents() {
     setupIpcHandlers();
     setupWebviewEvents();
     createMainWindow();
-    setupTray();
+    setupTray({
+      onShowMainWindow: (mode) => {
+        const mainWindow = getMainWindow();
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          if (mode === 'show') {
+            mainWindow.show();
+            mainWindow.focus();
+          } else {
+            if (mainWindow.isVisible()) {
+              mainWindow.hide();
+            } else {
+              mainWindow.show();
+              mainWindow.focus();
+            }
+          }
+        }
+      },
+      onQuitApp: () => {
+        quitApp();
+      }
+    });
+    registerGlobalShortcut();
+
+    const settings = getSettings();
+    if (settings.autoStart) {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        path: app.getPath('exe')
+      });
+    }
   });
 
   app.on('window-all-closed', () => {
     logger.info('All windows closed');
+    saveWindowBounds();
     unregisterAllShortcuts();
-    destroyTray();
     if (process.platform !== 'darwin') {
       app.quit();
     }
   });
 
-  app.on('will-quit', () => {
-    logger.info('App will quit');
-    unregisterAllShortcuts();
+  app.on('before-quit', () => {
+    logger.info('App before-quit');
+    saveWindowBounds();
     destroyTray();
   });
 
+  app.on('will-quit', () => {
+    logger.info('App will quit');
+    unregisterAllShortcuts();
+    globalShortcut.unregisterAll();
+  });
+
   app.on('activate', () => {
-    const { getMainWindow, createMainWindow } = require('./window-manager');
     if (getMainWindow() === null) {
       createMainWindow();
     }
@@ -70,7 +144,7 @@ function setupAppEvents() {
 }
 
 function init() {
-  logger.info('Initializing app', { isDev });
+  logger.info('Initializing app', { isDev: IS_DEV });
   
   if (!setupSingleInstanceLock()) {
     return;

@@ -7,6 +7,8 @@ const { getSettings } = require('./settings');
 const logger = createLogger('TrayManager');
 
 let tray = null;
+let onShowMainWindow = null;
+let onQuitApp = null;
 
 function createTrayIcon() {
   const settings = getSettings();
@@ -27,17 +29,12 @@ function createTrayIcon() {
 }
 
 function createTrayMenu() {
-  const { getMainWindow, quitApp } = require('./window-manager');
-  
   const template = [
     {
       label: '显示主窗口',
       click: () => {
-        const mainWindow = getMainWindow();
-        if (mainWindow) {
-          if (mainWindow.isMinimized()) mainWindow.restore();
-          if (!mainWindow.isVisible()) mainWindow.show();
-          mainWindow.focus();
+        if (typeof onShowMainWindow === 'function') {
+          onShowMainWindow();
         }
         logger.debug('Tray: Show main window clicked');
       }
@@ -49,7 +46,9 @@ function createTrayMenu() {
       label: '退出',
       click: () => {
         logger.info('Tray: Quit clicked');
-        quitApp();
+        if (typeof onQuitApp === 'function') {
+          onQuitApp();
+        }
       }
     }
   ];
@@ -57,10 +56,15 @@ function createTrayMenu() {
   return Menu.buildFromTemplate(template);
 }
 
-function setupTray() {
+function setupTray(callbacks) {
   if (tray) {
     logger.debug('Tray already exists, skipping setup');
     return;
+  }
+
+  if (callbacks) {
+    onShowMainWindow = callbacks.onShowMainWindow || null;
+    onQuitApp = callbacks.onQuitApp || null;
   }
 
   const icon = createTrayIcon();
@@ -77,29 +81,15 @@ function setupTray() {
     
     tray.on('click', () => {
       logger.debug('Tray clicked');
-      const { getMainWindow } = require('./window-manager');
-      const mainWindow = getMainWindow();
-      if (mainWindow) {
-        if (mainWindow.isMinimized()) {
-          mainWindow.restore();
-        }
-        if (mainWindow.isVisible()) {
-          mainWindow.hide();
-        } else {
-          mainWindow.show();
-          mainWindow.focus();
-        }
+      if (typeof onShowMainWindow === 'function') {
+        onShowMainWindow('toggle');
       }
     });
 
     tray.on('double-click', () => {
       logger.debug('Tray double-clicked');
-      const { getMainWindow } = require('./window-manager');
-      const mainWindow = getMainWindow();
-      if (mainWindow) {
-        if (mainWindow.isMinimized()) mainWindow.restore();
-        mainWindow.show();
-        mainWindow.focus();
+      if (typeof onShowMainWindow === 'function') {
+        onShowMainWindow('show');
       }
     });
 
